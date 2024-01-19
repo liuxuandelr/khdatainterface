@@ -1,0 +1,29 @@
+[{
+  "sensorId": "05000500010001001412",
+  "substationsId": "88b5e4a4-47f2-42e7-9097-847a5a2e8bda",
+  "deviceIds": "36e46fc2-38ca-43f2-a841-1bdbd1027d10",
+  "linesId": "c95adeb3-f10b-4c76-9ef9-cffaf8075173",
+  "deviceCode": "3",
+  "nameDesc": "九龙变-九盘client-盘宜2线"
+},{
+  "sensorId": "05000500020002001411",
+  "substationsId": "88b5e4a4-47f2-42e7-9097-847a5a2e8bda",
+  "deviceIds": "36e46fc2-38ca-43f2-a841-1bdbd1027d10",
+  "linesId": "666810a0-0502-4520-8bb9-d80276ef9d5d",
+  "deviceCode": "3",
+  "nameDesc": "九龙变-九盘client-盘宜1线"
+},{
+  "sensorId": "05000500030003001422",
+  "substationsId": "c639bdd5-8cd7-4aa3-8a41-50f56c303cad",
+  "deviceIds": "c472dc7a-b69b-48dd-b226-fdeff7559a41",
+  "linesId": "c95adeb3-f10b-4c76-9ef9-cffaf8075173",
+  "deviceCode": "1",
+  "nameDesc": "宜昌换流站-xc-100e（1）-盘宜2线"
+},{
+  "sensorId": "05000500010001001412",
+  "substationsId": "c639bdd5-8cd7-4aa3-8a41-50f56c303cad",
+  "deviceIds": "c472dc7a-b69b-48dd-b226-fdeff7559a41",
+  "linesId": "666810a0-0502-4520-8bb9-d80276ef9d5d",
+  "deviceCode": "1",
+  "nameDesc": "宜昌换流站-xc-100e（1）-盘宜1线"
+}]
