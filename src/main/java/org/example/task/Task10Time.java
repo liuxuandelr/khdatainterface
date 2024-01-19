@@ -6,11 +6,9 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -32,6 +30,7 @@ import org.example.pojo.SensorEntity;
 import org.example.pojo.SensorSampleData;
 import org.example.service.impl.EventsServiceImpl;
 import org.example.service.impl.FaultdatasServiceImpl;
+import org.example.utils.ByteUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -99,28 +98,34 @@ public class Task10Time {
 //            截断日期查询查询日志Map的键，判断其产生的告警类型和告警序号
             String t = a.getFlWaveSelfT().toString().replace("T", " ");
             EventsEntity eventsEntity = stringEventsEntityMap.get(t);
-            switch (eventsEntity.getType()) {
-                case "1":
-                    a.setAlm1(true);
-                    a.setFltNum(1);
-                case "2":
-                    a.setAlm2(true);
-                    a.setFltNum(2);
-                case "3":
-                    a.setAlm3(true);
-                    a.setFltNum(3);
-                    break;
-                case "5":
-                    a.setAlm1(false);
-                    a.setAlm2(false);
-                    a.setAlm3(false);
-                    a.setAlm4(false);
-                    a.setFltNum(0);
-                    break;
+            if (eventsEntity == null || StringUtils.isBlank(eventsEntity.getType())) {
+                a.setAlm1(false);
+                a.setAlm2(false);
+                a.setAlm3(false);
+                a.setAlm4(false);
+                a.setFltNum(0);
+            } else {
+                switch (eventsEntity.getType()) {
+                    case "1":
+                        a.setAlm1(true);
+                        a.setFltNum(1);
+                    case "2":
+                        a.setAlm2(true);
+                        a.setFltNum(2);
+                    case "3":
+                        a.setAlm3(true);
+                        a.setFltNum(3);
+                        break;
+                    case "5":
+                        a.setAlm1(false);
+                        a.setAlm2(false);
+                        a.setAlm3(false);
+                        a.setAlm4(false);
+                        a.setFltNum(0);
+                        break;
+                }
             }
             sampleData.add(SampleDataBuilder.buildSampleData(a));
-            //TODO 数据长度不足500会报错，需要判断长度优化
-            log.info("已打包数据-DATA：{}", SampleDataBuilder.buildSampleData(a).toString().substring(0, 500));
             //获取图谱与对应信息，并且封装到Map集合中准备发送
             hashMap.put(a.getFaultId(), new String[] {
                 a.getSensorId(),
@@ -128,7 +133,7 @@ public class Task10Time {
                 a.getPeerSubName(),
                 a.getLineName(),
                 String.valueOf(a.getFlWaveSelfT()),
-                faultdatasService.getBlobFileById(a.getFaultId())
+                ByteUtil.toHexStringTrim(a.getFileData())
             });
         });
         //发数据
@@ -136,13 +141,15 @@ public class Task10Time {
             rangingRecordController.outGetMaxTime();
             log.info("已覆盖本地时间：{}，最新时间：{}", date, date1);
         }
-//        下载图谱
+        //下载图谱
         DownBlobFile(hashMap);
         //发图谱
         List<SensorSampleData> sampleFile = new ArrayList<>();
         hashMap.forEach((a, b) -> {
             List<FileData> fileData = new ArrayList<>();
-            FileData fileData1 = new FileData(b[1] + "-" + b[2] + "-" + b[3] + "-" + b[4].replaceAll(":", "") + ".dat", Base64.getEncoder().encodeToString(b[5].getBytes(StandardCharsets.UTF_8)));
+            FileData fileData1 = new FileData(
+                b[1] + "-" + b[2] + "-" + b[3] + "-" + b[4].replaceAll(":", "") + ".dat",
+                b[5]);
             fileData.add(fileData1);
             SensorSampleData sampleDataFile = new SensorSampleData();
             try {
@@ -150,7 +157,8 @@ public class Task10Time {
                     b[0],
                     b[1] + "-" + b[2],
                     b[1] + "-" + b[2] + b[3],
-                    new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(b[4].replaceAll("T", " ")), fileData);
+                    new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                        .parse(b[4].replaceAll("T", " ")), fileData);
                 sampleFile.add(sampleDataFile);
                 log.info("已打包图谱-FILE：{}", sampleDataFile.toString().substring(0, 500));
             } catch (ParseException e) {
@@ -172,22 +180,15 @@ public class Task10Time {
             path.mkdir();
         }
         hashMap.forEach((a, b) -> {
-            String pathFile = path + File.separator + b[1] + "-" + b[2] + "-" + b[3] + "-" + b[4].replaceAll(":", "") + ".dat";
+            String pathFile = path + File.separator + b[1] + "-" + b[2] + "-" + b[3] + "-"
+                + b[4].replaceAll(":", "") + ".dat";
             File file = new File(pathFile);
             try {
                 if (!file.exists())
                     file.createNewFile();
                 BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
-                byte[] bb = b[5].getBytes();
-                int offset = 0;// 每次读取到的字节数组的长度
-                int chunkSize = 8192;
-                while (offset < bb.length) {
-                    int length = Math.min(chunkSize, bb.length - offset);
-                    out.write(bb, 0, length);// 写入到输出流
-                    offset += length;
-                }
-                out.flush();
-                out.close();// 关闭流
+                out.write(b[5].getBytes());
+                out.close();
             } catch (IOException io) {
                 io.printStackTrace();
             }
@@ -210,4 +211,5 @@ public class Task10Time {
         }
         return samples.size();
     }
+
 }

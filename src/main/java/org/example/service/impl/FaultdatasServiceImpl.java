@@ -63,7 +63,6 @@ public class FaultdatasServiceImpl extends ServiceImpl<FaultdatasMapper, Faultda
 
     @Override
     public String getBlobFileById(String faultId) {
-//        FaultdatasEntity byId = getById(faultId);
         String blob = faultdatasMapper.selectBlob(faultId);
         return blob;
     }

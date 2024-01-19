@@ -10,6 +10,7 @@ import io.swagger.annotations.ApiModel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.apache.ibatis.type.BlobTypeHandler;
 
 /**
  * <p>
@@ -38,8 +39,8 @@ public class FaultdatasEntity {
     @TableField("deviceId")
     private Integer deviceId;
 
-    @TableField("`data`")
-    private Blob data;
+    @TableField(value = "`data`", typeHandler = BlobTypeHandler.class)
+    private byte[] data;
 
     @TableField("deviation")
     private Integer deviation;

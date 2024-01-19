@@ -95,5 +95,5 @@ public class RangingRecordEntity {
 
     private String faultId;
 
-
+    private byte[] fileData;
 }
