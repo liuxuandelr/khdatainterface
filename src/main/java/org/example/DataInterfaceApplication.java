@@ -18,6 +18,7 @@ public class DataInterfaceApplication {
 
     public static void main(String[] args) throws Exception {
         try {
+            log.info("APP-VERSION: 2024-01-22.003");
             Config.init();
             //        运行
             SpringApplication.run(DataInterfaceApplication.class, args);

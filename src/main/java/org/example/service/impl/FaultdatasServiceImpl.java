@@ -34,9 +34,9 @@ public class FaultdatasServiceImpl extends ServiceImpl<FaultdatasMapper, Faultda
     public FaultdatasEntity getTopTime() {
         FaultdatasEntity faultdatasEntity = new FaultdatasEntity();
         QueryWrapper<FaultdatasEntity> qw1 = new QueryWrapper<>(faultdatasEntity);
-        List<FaultdatasEntity> list = list(qw1.orderByDesc("faultTime"));
+        FaultdatasEntity faultdatas = getOne(qw1.eq("deviceId",1).eq("reasion",3).eq("isfault",1).isNotNull("location").last("limit 1").orderByDesc("faultTime"));
         // TODO 查所有占用资源可优化
-        return list.get(0);
+        return faultdatas;
     }
 
     //根据文件中的时间找判断新的数据存在

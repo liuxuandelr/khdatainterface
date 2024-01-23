@@ -22,12 +22,7 @@ import org.example.client.SampleDataBuilder;
 import org.example.config.Config;
 import org.example.config.DataType;
 import org.example.controller.RangingRecordController;
-import org.example.pojo.EventsEntity;
-import org.example.pojo.FaultdatasEntity;
-import org.example.pojo.FileData;
-import org.example.pojo.RangingRecordEntity;
-import org.example.pojo.SensorEntity;
-import org.example.pojo.SensorSampleData;
+import org.example.pojo.*;
 import org.example.service.impl.EventsServiceImpl;
 import org.example.service.impl.FaultdatasServiceImpl;
 import org.example.utils.ByteUtil;
@@ -51,19 +46,26 @@ public class Task10Time {
     @PostConstruct
     public void doTesk() throws ParseException {
         log.info("获取数据任务开始第{}轮--{}", getNums, new Date(System.currentTimeMillis()));
+        EventSystate sysdate =eventsService.intgetMaxTime();
+        if (sysdate==null){
+            log.info("无最新故障测距信息");
+        }
         Date date = rangingRecordController.intGetMaxTime();
         FaultdatasEntity topTime = faultdatasService.getTopTime();
         String faultTime = topTime.getFaultTime();
         SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date1 = ft.parse(faultTime);
         log.info("读取的本地时间:{}，读取的最新时间:{}", date, date1);
-        ArrayList<RangingRecordEntity> recordEntities;
+        ArrayList<RangingRecordEntity> recordEntities = new ArrayList<>();
         ArrayList<SensorSampleData> sampleData = new ArrayList<>();
-        if (date.compareTo(date1) >= 0) {
-            log.info("没有新的时间数据，发送最新的宜昌1线和2线数据");
-            recordEntities = rangingRecordController.notDateTime(date1);
-        } else {
-            recordEntities = rangingRecordController.inMaxTimeGetListFault();
+        if (date.compareTo(date1) == 0){
+            log.info("没有新的时间数据，发送最新的宜昌端1线和2线故障数据");
+            recordEntities = rangingRecordController.notDateTime(date1,true);
+        } else if (date.compareTo(date1) < 0){
+            recordEntities = rangingRecordController.inMaxTimeGetListFault(true);
+        }else if (date.compareTo(date1) > 0){
+            log.info("文件内时间戳有误，发送最新的宜昌端1线和2线故障数据");
+            recordEntities = rangingRecordController.notDateTime(date1, true);
         }
         //TODO        获取日志表中的数据，Fault和Event同时间数量大约2：1,为保证避免干扰日志扩大获取范围,可考虑取出对比而非查询
         Map<String, EventsEntity> timeEventsMap = eventsService.allEventsList(recordEntities.size() * 2);
@@ -91,8 +93,10 @@ public class Task10Time {
             sensorEntities.stream().forEach(b -> {
                 if (a.getLineName().equals(b.getLinesId().equals("2") ? "盘宜Ⅰ线" : "盘宜Ⅱ线")) {
                     a.setSensorId(b.getSensorId());
+                    a.setLineLen("229.684");
                 } else {
                     a.setSensorId(b.getSensorId());
+                    a.setLineLen("231.084");
                 }
             });
 //            截断日期查询查询日志Map的键，判断其产生的告警类型和告警序号
@@ -126,13 +130,14 @@ public class Task10Time {
                 }
             }
             sampleData.add(SampleDataBuilder.buildSampleData(a));
+
             //获取图谱与对应信息，并且封装到Map集合中准备发送
             hashMap.put(a.getFaultId(), new String[] {
                 a.getSensorId(),
                 a.getSubName(),
                 a.getPeerSubName(),
                 a.getLineName(),
-                String.valueOf(a.getFlWaveSelfT()),
+                a.getFlWaveSelfT(),
                 ByteUtil.toHexStringTrim(a.getFileData())
             });
         });
@@ -148,17 +153,15 @@ public class Task10Time {
         hashMap.forEach((a, b) -> {
             List<FileData> fileData = new ArrayList<>();
             FileData fileData1 = new FileData(
-                b[1] + "-" + b[2] + "-" + b[3] + "-" + b[4].replaceAll(":", "") + ".dat",
+                b[1] + "-" + b[2] + "-" + b[3] + "-" + b[4].replaceAll(":","").replaceAll("-","").replaceAll(" ","") + ".dat",
                 b[5]);
             fileData.add(fileData1);
             SensorSampleData sampleDataFile = new SensorSampleData();
             try {
                 sampleDataFile = SampleDataBuilder.buildSampleData(
                     b[0],
-                    b[1] + "-" + b[2],
-                    b[1] + "-" + b[2] + b[3],
-                    new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-                        .parse(b[4].replaceAll("T", " ")), fileData);
+                    b[1] + "-" + b[2], b[3],
+                    ft.parse(b[4]), fileData);
                 sampleFile.add(sampleDataFile);
                 log.info("已打包图谱-FILE：{}", sampleDataFile.toString().substring(0, 500));
             } catch (ParseException e) {

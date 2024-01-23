@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -46,7 +47,6 @@ public class RangingRecordController {
     @Autowired
     public VoltagelevelsServiceImpl voltagelevelsService;
 
-    private final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -97,27 +97,41 @@ public class RangingRecordController {
     }
 
     //    查询所有超过本地时间的数据
-    public ArrayList<RangingRecordEntity> inMaxTimeGetListFault() {
+    public ArrayList<RangingRecordEntity> inMaxTimeGetListFault(boolean b) {
         Date date = this.intGetMaxTime();
-        log.info("data {}", date);
         ArrayList<FaultdatasEntity> topNum2Time = faultdatasService.getTopNum2Time(date);
         ArrayList<RangingRecordEntity> recordEntities = new ArrayList<>();
         topNum2Time.stream().forEach(a -> {
             RangingRecordEntity rangingRecord = new RangingRecordEntity();
-            rangingRecord.setFlWavePeerT(LocalDateTime.parse(a.getFaultTime(), fmt));
-            rangingRecord.setFlWaveSelfT(LocalDateTime.parse(a.getFaultTime(), fmt));
+            rangingRecord.setFlWavePeerT(a.getFaultTime());
+            rangingRecord.setFlWaveSelfT(a.getFaultTime());
             rangingRecord.setFaultA(a.getAmplitude() != null ? a.getAmplitude().toString() : "null");
             rangingRecord.setFaultId(a.getId());
             rangingRecord.setFaultTimeUs(String.valueOf(a.getUs()));
             LinesEntity linesEntity = linesService.lineIdGetLine(a.getLineId());
             rangingRecord.setLineName(linesEntity.getName());
             rangingRecord.setLineLen(String.valueOf(linesEntity.getLength()));
+            rangingRecord.setDeviceState(b);
             if (a.getDeviceId() == 1) {
                 rangingRecord.setSubName("宜昌换流站");
                 rangingRecord.setPeerSubName("九盘变");
+                if (a.getIsfault().equals("1")){
+                    rangingRecord.setRcdMade("1");
+                    rangingRecord.setFltDiskm(Double.valueOf(String.valueOf(a.getLocation())));
+                }else {
+                    rangingRecord.setRcdMade("0");
+                    rangingRecord.setFltDiskm(Double.valueOf(String.valueOf(linesEntity.getLength())));
+                }
             } else if (a.getDeviceId() == 3) {
                 rangingRecord.setSubName("九盘变");
                 rangingRecord.setPeerSubName("宜昌换流站");
+                if (a.getIsfault().equals("1")){
+                    rangingRecord.setRcdMade("1");
+                    rangingRecord.setFltDiskm(Double.valueOf(String.valueOf(a.getLocation())));
+                }else {
+                    rangingRecord.setRcdMade("0");
+                    rangingRecord.setFltDiskm(Double.valueOf(String.valueOf(linesEntity.getLength())));
+                }
             }
             VoltagelevelsEntity byId = voltagelevelsService.getById(linesEntity.getVoltagelevelId());
             rangingRecord.setFaultV(String.valueOf(byId.getName()));
@@ -134,27 +148,42 @@ public class RangingRecordController {
     }
 
     //根据时间查询两条线路最新的数据
-    public ArrayList<RangingRecordEntity> notDateTime(Date date1) {
+    public ArrayList<RangingRecordEntity> notDateTime(Date date1, boolean b) {
         List<LinesEntity> list = linesService.list();
         ArrayList<RangingRecordEntity> recordEntities = new ArrayList<>();
         for (LinesEntity linesEntity : list) {
             QueryWrapper<FaultdatasEntity> qw = new QueryWrapper<>();
             FaultdatasEntity one = faultdatasService.getOne(qw.eq("faultTime",
-                ft.format(date1)).eq("lineId", linesEntity.getId()));
+                ft.format(date1)).eq("lineId", linesEntity.getId()).eq("deviceId","1").eq("reasion",3).eq("isfault",1));
             RangingRecordEntity rangingRecord = new RangingRecordEntity();
-            rangingRecord.setFlWavePeerT(LocalDateTime.parse(one.getFaultTime(), fmt));
-            rangingRecord.setFlWaveSelfT(LocalDateTime.parse(one.getFaultTime(), fmt));
+            rangingRecord.setFlWavePeerT(one.getFaultTime());
+            rangingRecord.setFlWaveSelfT(one.getFaultTime());
             rangingRecord.setFaultA(one.getAmplitude() != null ? one.getAmplitude().toString() : "null");
             rangingRecord.setFaultId(one.getId());
             rangingRecord.setFaultTimeUs(String.valueOf(one.getUs()));
             rangingRecord.setLineName(linesEntity.getName());
+            rangingRecord.setDeviceState(b);
             rangingRecord.setLineLen(String.valueOf(linesEntity.getLength()));
             if (one.getDeviceId() == 1) {
                 rangingRecord.setSubName("宜昌换流站");
                 rangingRecord.setPeerSubName("九盘变");
+                if (one.getIsfault().equals("1")){
+                    rangingRecord.setRcdMade("1");
+                    rangingRecord.setFltDiskm(Double.valueOf(String.valueOf(one.getLocation())));
+                }else {
+                    rangingRecord.setRcdMade("0");
+                    rangingRecord.setFltDiskm(Double.valueOf(String.valueOf(linesEntity.getLength())));
+                }
             } else if (one.getDeviceId() == 3) {
-                rangingRecord.setPeerSubName("九盘变");
+                rangingRecord.setSubName("九盘变");
                 rangingRecord.setPeerSubName("宜昌换流站");
+                if (one.getIsfault().equals("1")){
+                    rangingRecord.setRcdMade("1");
+                    rangingRecord.setFltDiskm(Double.valueOf(String.valueOf(one.getLocation())));
+                }else {
+                    rangingRecord.setRcdMade("0");
+                    rangingRecord.setFltDiskm(Double.valueOf(String.valueOf(linesEntity.getLength())));
+                }
             }
             VoltagelevelsEntity byId = voltagelevelsService.getById(linesEntity.getVoltagelevelId());
             rangingRecord.setFaultV(String.valueOf(byId.getName()));

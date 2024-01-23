@@ -8,6 +8,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.sql.Blob;
 import java.time.LocalDateTime;
+import java.util.Date;
+
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -34,6 +36,8 @@ public class RangingRecordEntity {
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
+    private boolean deviceState;
+
     @TableField("Alm1")
     private boolean alm1;
 
@@ -56,12 +60,12 @@ public class RangingRecordEntity {
     private Double fltDiskm;
 
     @TableField("FlWaveSelfT")
-    private LocalDateTime flWaveSelfT;
+    private String flWaveSelfT;
 
     private String faultTimeUs;
 
     @TableField("FlWavePeerT")
-    private LocalDateTime flWavePeerT;
+    private String flWavePeerT;
 
     @TableField("FaultA")
     private String faultA;

@@ -42,7 +42,7 @@ public class SampleDataBuilder {
         result.setSensorid(objectPo.getSensorId());
         result.setEquipmentid(result.getSensorid());
         result.setName(objectPo.getSubName() + "-" + objectPo.getPeerSubName());
-        result.setTimestamp(SDF.format(Date.from(objectPo.getFlWaveSelfT().atZone(ZoneId.systemDefault()).toInstant())));
+        result.setTimestamp(objectPo.getFlWaveSelfT());
         List<PropertyDescriptor> descriptors = null;
         HashMap<String, Object> map = new HashMap();
         try {
