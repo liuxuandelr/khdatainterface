@@ -1,5 +1,7 @@
 package org.example.utils;
 
+import java.util.List;
+
 public class ByteUtil {
 
     public static byte hexToByte(String inHex) {
@@ -40,4 +42,21 @@ public class ByteUtil {
         return builder.toString();
     }
 
+
+    public static byte[] mergingByteArrays(List<byte[]> values) {
+        // 计算合并后数组长度
+        int lengthByte = 0;
+        for (byte[] value : values) {
+            lengthByte += value.length;
+        }
+        // 将多个数组的数据合并到1个数组中
+        byte[] allBytes = new byte[lengthByte];
+        int countLength = 0;
+        for (byte[] b : values) {
+            System.arraycopy(b, 0, allBytes, countLength, b.length);
+            countLength += b.length;
+        }
+        // 返回合并后的字节数组
+        return allBytes;
+    }
 }

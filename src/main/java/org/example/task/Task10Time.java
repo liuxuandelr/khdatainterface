@@ -22,6 +22,7 @@ import org.example.client.SampleDataBuilder;
 import org.example.config.Config;
 import org.example.config.DataType;
 import org.example.controller.RangingRecordController;
+import org.example.device.report.DataReportAcceptor;
 import org.example.pojo.*;
 import org.example.service.impl.EventsServiceImpl;
 import org.example.service.impl.FaultdatasServiceImpl;
@@ -39,6 +40,8 @@ public class Task10Time {
     public EventsServiceImpl eventsService;
     @Resource
     public RangingRecordController rangingRecordController;
+    @Resource
+    public DataReportAcceptor dataReportAcceptor;
 
     private int getNums = 1;
 
@@ -147,7 +150,8 @@ public class Task10Time {
             log.info("已覆盖本地时间：{}，最新时间：{}", date, date1);
         }
         //下载图谱
-        DownBlobFile(hashMap);
+        //TODO 使用61850服务下载图谱
+//        DownBlobFile(hashMap);
         //发图谱
         List<SensorSampleData> sampleFile = new ArrayList<>();
         hashMap.forEach((a, b) -> {
@@ -178,7 +182,8 @@ public class Task10Time {
     //    下载文件到本地
     public void DownBlobFile(HashMap<String, String[]> hashMap) {
         String basePath = System.getProperty("user.dir");
-        File path = new File(basePath + File.separator + "blob");
+//        File path = new File(basePath + File.separator + "blob");
+        File path = new File(basePath + File.separator + "files");
         if (!path.exists()) {
             path.mkdir();
         }

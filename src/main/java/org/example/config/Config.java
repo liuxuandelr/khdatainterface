@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.example.client.LongSocketSender;
+import org.example.device.config.DeviceConfig;
 import org.example.pojo.SensorEntity;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -13,13 +14,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 @Configuration
 @Slf4j
 public class Config {
-
+    private static final int fileSaveDayNum = -1;
     private static SendConfig sendConfig;
 
     private static LongSocketSender socketSender;
@@ -29,6 +29,20 @@ public class Config {
 
     private static List<SensorEntity> sensorEntityList;
 
+    private static boolean localModelICD = false;
+
+    public static Boolean localLogDebug;
+
+    private static int filePeriod = 300;
+
+    private static String localWaveFileVersion = "2";
+
+    //1: 文件路径（已验证莫克服务）; 2：带目录绝对路径; 3: 带目录相对路径
+    private static int wavfileDownloadMethod = 2;
+
+    private static Map<String, Map<String, String>> dataInfo = new HashMap<>();
+
+    private static List<String> ownerRcbs = new ArrayList<>();
     public static void init() throws Exception{
         properties = loadProperties("config.properties");
         initSensor();
@@ -106,5 +120,36 @@ public class Config {
         }
 
         return prop;
+    }
+
+    public static int getFileSaveDayNum() {
+        return fileSaveDayNum;
+    }
+
+    public static boolean getLocalICD() {
+        return localModelICD;
+    }
+
+//    public static Map<String, DeviceConfig> getDeviceConfigs() {
+//        return DeviceFactoryImpl.getDeviceConfigs();
+//    }
+    public static int getFilePeriod() {
+        return filePeriod;
+    }
+
+    public static String getLocalWaveFileVersion() {
+        return localWaveFileVersion;
+    }
+
+    public static int getWavfileDownloadMethod() {
+        return wavfileDownloadMethod;
+    }
+
+    public static Map<String, Map<String, String>> getDataInfo() {
+        return dataInfo;
+    }
+
+    public static List<String> getOwnerRcbs() {
+        return ownerRcbs;
     }
 }

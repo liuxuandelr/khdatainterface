@@ -50,12 +50,11 @@ public class SampleDataBuilder {
                 String name = p.getName();
                 //过滤掉不需要修改的属性
                 return !"class".equals(name) &&
-                    !"alm1".equals(name) &&
-                    !"alm2".equals(name) &&
-                    !"alm3".equals(name) &&
-                    !"alm4".equals(name) &&
+//                    !"alm1".equals(name) &&
+//                    !"alm2".equals(name) &&
+//                    !"alm3".equals(name) &&
+//                    !"alm4".equals(name) &&
                     !"id".equals(name) &&
-                    !"rcdMade".equals(name) &&
                     !"faultId".equals(name) &&
                     !"createTime".equals(name);
             }).collect(Collectors.toList());
